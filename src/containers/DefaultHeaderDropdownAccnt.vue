@@ -54,6 +54,9 @@
       <b-dropdown-item>
         <i class="fa fa-shield"/> Lock Account
       </b-dropdown-item>
+      <b-dropdown-item @click="getToken">
+        <i class="fa fa-user-secret"/>GetToken
+      </b-dropdown-item>
       <b-dropdown-item @click="logout">
         <i class="fa fa-lock"/> Logout
       </b-dropdown-item>
@@ -88,6 +91,9 @@ export default {
     },
     setUser() {
       this.user = this.$AuthService.getUser();
+    },
+    getToken() {
+      this.accessToken = this.$AuthService.getGraphToken();
     }
   }
 };
