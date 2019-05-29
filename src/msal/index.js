@@ -8,42 +8,45 @@ export default class AuthService {
     // let redirectUri = window.location.origin;
     let redirectUri = config.redirecturl
     let PostLogoutRedirectUri = '/'
-    this.graphUrl = config.graphendpoint
     this.applicationConfig = {
       clientID: config.clientid,
-      graphScopes: config.graphscopes
+      authority: config.authority,
+      scopes: config.scopes,
+      redirectUri: config.redirecturl,
     }
     this.app = new Msal.UserAgentApplication(
       this.applicationConfig.clientID,
-      '',
+      this.applicationConfig.authority,
       () => {
         // callback for login redirect
+        this.applicationConfig.redirectUri
       },
       {
-        redirectUri
+        validateAuthority: false
       }
     )
   }
 
   // Core Functionality
   loginPopup() {
-    return this.app.loginPopup(this.applicationConfig.graphScopes).then(
-      idToken => {
-        const user = this.app.getUser();
+    return this.app.loginPopup(this.applicationConfig.scopes).then(
+      token => {
+        console.log("JWT Id token " + token)
+        const user = this.getUser();
         if (user) {
           return user;
         } else {
           return null;
         }
       },
-      () => {
-        return null;
+      error => {
+        console.log("Login error " + error)
       }
     );
   }
 
   loginRedirect() {
-    this.app.loginRedirect(this.applicationConfig.graphScopes)
+    this.app.loginRedirect(this.applicationConfig.scopes)
   }
 
   logout() {
@@ -53,15 +56,17 @@ export default class AuthService {
 
   // Graph Related
   getGraphToken() {
-    return this.app.acquireTokenSilent(this.applicationConfig.graphScopes).then(
+    return this.app.acquireTokenSilent(this.applicationConfig.scopes, this.applicationConfig.authority, this.getUser()).then(
       accessToken => {
+        console.log(accessToken)
         return accessToken
       },
       error => {
         return this.app
-          .acquireTokenPopup(this.applicationConfig.graphScopes)
+          .acquireTokenPopup(this.applicationConfig.scopes)
           .then(
             accessToken => {
+              console.log(accessToken)
               return accessToken
             },
             err => {
